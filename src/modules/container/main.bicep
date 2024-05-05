@@ -1,26 +1,13 @@
+import { arrayString, ContainerApp, ContainerApps } from '../../types.bicep'
+
 param name string
 param location string
 param tags object
 
-param ingressEnabled bool = false
-param ingressIsExternal bool = false
-param targetPort int = 8080
-
-@description('CPU in cores, must be written as a JSON decimal string')
-param cpuCores string = '0.5'
-@description('Memory in Gb, must be a ratio of 2 cpuCores')
-param memory string = '1Gb'
-
-@minValue(3)
-@maxValue(30)
-param minReplicas int
-@minValue(3)
-@maxValue(30)
-param maxReplicas int
-
+@description('ID for the managed environment')
 param environmentID string
 
-param containerImage string
+param container ContainerApp
 
 resource containerApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
   location: location
@@ -29,28 +16,27 @@ resource containerApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
   properties: {
     environmentId: environmentID
     configuration: {
-      ingress: (ingressEnabled
+      ingress: (container.ingress.ingressEnabled
         ? {
-            external: ingressIsExternal
-            targetPort: targetPort
-            targetPortHttpScheme: 'http'
+            external: container.ingress.ingressIsExternal
+            targetPort: container.ingress.targetPort
           }
         : null)
     }
     template: {
       containers: [
         {
-          name: name
-          image: containerImage
+          name: container.name
+          image: container.image
           resources: {
-            cpu: json(cpuCores) // what. Bicep doesn't suppoort floats. See https://github.com/Azure/bicep/issues/5993#issuecomment-1043170716
-            memory: memory
+            cpu: json(container.resources.cpuCores) // what. Bicep doesn't suppoort floats. See https://github.com/Azure/bicep/issues/5993#issuecomment-1043170716
+            memory: container.resources.memory
           }
         }
       ]
       scale: {
-        minReplicas: minReplicas
-        maxReplicas: maxReplicas
+        minReplicas: container.scaling.minReplicas
+        maxReplicas: container.scaling.maxReplicas
       }
     }
   }

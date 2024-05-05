@@ -1,20 +1,5 @@
 targetScope = 'subscription'
-
-type stringArray = string[]
-
-type ContainerApp = {
-  name: string
-  image: string
-  minReplicas: int
-  maxReplicas: int
-  cpuCores: string
-  memory: string
-  ingressEnabled: bool
-  ingressIsExternal: bool
-  targetPort: int
-}
-
-type ContainerApps = ContainerApp[]
+import { arrayString, ContainerApp, ContainerApps } from 'types.bicep'
 
 @description('Name of the app')
 param appName string
@@ -29,7 +14,7 @@ param env string
 param userTags object = {}
 
 @description('List of VNet address prefixes')
-param vnetAddressPrefixes stringArray = [
+param vnetAddressPrefixes arrayString = [
   '10.0.0.0/16'
 ]
 @description('Subnet address prefix, must be a valid CIDR block of /23 or bigger')
@@ -77,7 +62,6 @@ module containerAppEnvironment 'modules/containerAppEnvironment/main.bicep' = {
 }
 
 // Deploying just one container so far
-// TODO: Refactor to use the ContainerApp custom type
 module containerApps 'modules/container/main.bicep' = [
   for container in containers: {
     scope: resourceGroup
@@ -87,14 +71,7 @@ module containerApps 'modules/container/main.bicep' = [
       tags: tags
       environmentID: containerAppEnvironment.outputs.id
       location: location
-      containerImage: container.image
-      minReplicas: container.minReplicas
-      maxReplicas: container.maxReplicas
-      cpuCores: container.cpuCores
-      memory: container.memory
-      ingressEnabled: container.ingressEnabled
-      ingressIsExternal: container.ingressIsExternal
-      targetPort: container.targetPort
+      container: container
     }
   }
 ]
