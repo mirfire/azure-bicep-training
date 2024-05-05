@@ -1,5 +1,21 @@
 targetScope = 'subscription'
 
+type stringArray = string[]
+
+type ContainerApp = {
+  name: string
+  image: string
+  minReplicas: int
+  maxReplicas: int
+  cpuCores: string
+  memory: string
+  ingressEnabled: bool
+  ingressIsExternal: bool
+  targetPort: int
+}
+
+type ContainerApps = ContainerApp[]
+
 @description('Name of the app')
 param appName string
 
@@ -9,13 +25,18 @@ param location string
 @allowed(['prod', 'dev'])
 param env string
 
+@description('Tags to apply to all resources')
 param userTags object = {}
 
-param containerImage string
-param vnetAddressPrefix array = [
+@description('List of VNet address prefixes')
+param vnetAddressPrefixes stringArray = [
   '10.0.0.0/16'
 ]
-param subnetAddressPrefix string = '10.0.1.0/24'
+@description('Subnet address prefix, must be a valid CIDR block of /23 or bigger')
+// https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps?tabs=azure-cli#enable-zone-redundancy-with-the-azure-cli
+param subnetAddressPrefix string = '10.0.0.0/23'
+
+param containers ContainerApps
 
 var defaultTags = { appName: appName, env: appName, buildTool: 'bicep' }
 var tags = union(userTags, defaultTags)
@@ -37,7 +58,7 @@ module network 'modules/network/main.bicep' = {
     name: '${appName}-${env}-nw'
     location: location
     tags: tags
-    vnetAddressPrefix: vnetAddressPrefix
+    vnetAddressPrefix: vnetAddressPrefixes
     subnetAddressPrefix: subnetAddressPrefix
   }
 }
@@ -56,15 +77,24 @@ module containerAppEnvironment 'modules/containerAppEnvironment/main.bicep' = {
 }
 
 // Deploying just one container so far
-// TODO: Loop over needed containers maybe?
-module container 'modules/container/main.bicep' = {
-  name: '${appName}-front-${env}-ca'
-  scope: resourceGroup
-  params: {
-    name: '${appName}-front-${env}-ca'
-    location: location
-    tags: tags
-    environmentID: containerAppEnvironment.outputs.id
-    containerImage: 'ghcr.io/mirfire/dotnet-hello-world:1.0.0'
+// TODO: Refactor to use the ContainerApp custom type
+module containerApps 'modules/container/main.bicep' = [
+  for container in containers: {
+    scope: resourceGroup
+    name: '${container.name}-${appName}-${env}'
+    params: {
+      name: '${container.name}-${appName}-${env}'
+      tags: tags
+      environmentID: containerAppEnvironment.outputs.id
+      location: location
+      containerImage: container.image
+      minReplicas: container.minReplicas
+      maxReplicas: container.maxReplicas
+      cpuCores: container.cpuCores
+      memory: container.memory
+      ingressEnabled: container.ingressEnabled
+      ingressIsExternal: container.ingressIsExternal
+      targetPort: container.targetPort
+    }
   }
-}
+]
