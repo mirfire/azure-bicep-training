@@ -15,6 +15,11 @@ resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-11-02-p
       internal: false
       infrastructureSubnetId: subnetId
     }
+    peerAuthentication: {
+      mtls: {
+        enabled: false
+      }
+    }
   }
 }
 
