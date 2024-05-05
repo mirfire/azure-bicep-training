@@ -46,7 +46,7 @@ flowchart LR
 
 ### App Service Based (PaaS)
 
-Deploying code directly to an Azure-controlled environment.
+Deploying code directly to an Azure-controlled environment through App Service. Works, though possibly more expensive than a container-as-a-service based solution as we are billed for the underlying machine(s) running the code.
 
 ```mermaid
 flowchart LR
@@ -64,3 +64,15 @@ flowchart LR
         serviceAppFront[Front-End App Service] -->|optional| azStorageAccount
     end
 ```
+
+## Issues Encountered
+
+### Floats are not supported
+
+Surprisingly, Bicep does not currently support floating point numbers. They have to be wrapped in JSON for them to be interpreted.
+
+Sources:
+
+- https://github.com/github/pets-workshop/pull/13
+- https://github.com/Azure/bicep/issues/1386
+- https://github.com/Azure/bicep/issues/5993#issuecomment-1043170716
