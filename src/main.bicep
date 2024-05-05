@@ -22,6 +22,22 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2023-07-01' = {
   tags: tags
 }
 
+// Deploying a network to contain the environment
+// Required for environment to have redundancy over the different availability zones
+module network 'modules/network/main.bicep' = {
+  name: '${appName}-${env}-nw'
+  scope: resourceGroup
+  params: {
+    name: '${appName}-${env}-nw'
+    location: location
+    tags: tags
+    vnetAddressPrefix: [
+      '10.0.0.0/16'
+    ]
+    subnetAddressPrefix: '10.0.1.0/24'
+  }
+}
+
 // Deploying a the environment to run the containers in
 // So far, it is extremely basic and does not store logs, nor has any file sharing/mounts
 module containerAppEnvironment 'modules/containerAppEnvironment/main.bicep' = {
@@ -31,5 +47,9 @@ module containerAppEnvironment 'modules/containerAppEnvironment/main.bicep' = {
     name: '${appName}-${env}-caenv'
     location: location
     tags: tags
+    subnetId: network.outputs.subnetId
+  }
+}
+
   }
 }
