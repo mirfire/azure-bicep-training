@@ -1,1 +1,5 @@
+# Parameter files
 *.bicepparam
+
+# ARM templates
+*.json
