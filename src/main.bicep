@@ -11,16 +11,13 @@ param env string
 
 param userTags object = {}
 
-var uid = uniqueString(appName, env, location)
-
 var defaultTags = { appName: appName, env: appName, buildTool: 'bicep' }
 var tags = union(userTags, defaultTags)
 
-module resourceGroup 'modules/resourceGroup/main.bicep' = {
+// Keeping the resource group in the root file and not in a sub module
+// Bicep and other resources need the direct reference to function correctly
+resource resourceGroup 'Microsoft.Resources/resourceGroups@2023-07-01' = {
   name: '${appName}-${env}-rg'
-  params: {
-    name: '${appName}-${env}-rg'
-    location: location
-    tags: tags
-  }
+  location: location
+  tags: tags
 }
