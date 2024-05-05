@@ -5,7 +5,7 @@ param tags object
 param subnetId string
 
 // Most basic of all container environments. No logs. No file share, nothing.
-resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-11-02-preview' = {
+resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
   name: name
   location: location
   tags: tags

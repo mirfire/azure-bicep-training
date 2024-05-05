@@ -9,7 +9,7 @@ param environmentID string
 
 param container ContainerApp
 
-resource containerApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
+resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
   location: location
   name: name
   tags: tags
