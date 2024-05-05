@@ -76,3 +76,38 @@ Sources:
 - https://github.com/github/pets-workshop/pull/13
 - https://github.com/Azure/bicep/issues/1386
 - https://github.com/Azure/bicep/issues/5993#issuecomment-1043170716
+
+### Subnet declared separately from network gets deleted
+
+With the following piece of code, the subnet is getting deleted each time by a deployment (and fails because the subnet is in use by the container environment).
+
+```bicep
+resource network 'Microsoft.Network/virtualNetworks@2023-09-01' = {
+  name: name
+  location: location
+  tags: tags
+  properties: {
+    addressSpace: {
+      addressPrefixes: vnetAddressPrefix
+    }
+  }
+}
+
+resource subnet 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
+  parent: network
+  name: 'infra'
+  properties: {
+    addressPrefix: subnetAddressPrefix
+  }
+}
+
+output id string = network.id
+output name string = network.name
+
+output subnetId string = subnet.id
+output subnetName string = subnet.name
+```
+
+Declaring the subnet in the network directly fixes the issue. 
+
+Problably linked to [this issue on the Bicep repo](https://github.com/Azure/bicep-types-az/issues/1687).

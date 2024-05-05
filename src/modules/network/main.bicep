@@ -18,19 +18,20 @@ resource network 'Microsoft.Network/virtualNetworks@2023-09-01' = {
     addressSpace: {
       addressPrefixes: vnetAddressPrefix
     }
-  }
-}
-
-resource subnet 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
-  parent: network
-  name: 'infra'
-  properties: {
-    addressPrefix: subnetAddressPrefix
+    subnets: [
+      {
+        name: 'infra'
+        properties: {
+          addressPrefix: subnetAddressPrefix
+          privateEndpointNetworkPolicies: 'Disabled'
+        }
+      }
+    ]
   }
 }
 
 output id string = network.id
 output name string = network.name
 
-output subnetId string = subnet.id
-output subnetName string = subnet.name
+output subnetId string = network.properties.subnets[0].id
+output subnetName string = network.properties.subnets[0].name
