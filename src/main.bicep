@@ -11,6 +11,12 @@ param env string
 
 param userTags object = {}
 
+param containerImage string
+param vnetAddressPrefix array = [
+  '10.0.0.0/16'
+]
+param subnetAddressPrefix string = '10.0.1.0/24'
+
 var defaultTags = { appName: appName, env: appName, buildTool: 'bicep' }
 var tags = union(userTags, defaultTags)
 
@@ -31,10 +37,8 @@ module network 'modules/network/main.bicep' = {
     name: '${appName}-${env}-nw'
     location: location
     tags: tags
-    vnetAddressPrefix: [
-      '10.0.0.0/16'
-    ]
-    subnetAddressPrefix: '10.0.1.0/24'
+    vnetAddressPrefix: vnetAddressPrefix
+    subnetAddressPrefix: subnetAddressPrefix
   }
 }
 
@@ -51,5 +55,16 @@ module containerAppEnvironment 'modules/containerAppEnvironment/main.bicep' = {
   }
 }
 
+// Deploying just one container so far
+// TODO: Loop over needed containers maybe?
+module container 'modules/container/main.bicep' = {
+  name: '${appName}-front-${env}-ca'
+  scope: resourceGroup
+  params: {
+    name: '${appName}-front-${env}-ca'
+    location: location
+    tags: tags
+    environmentID: containerAppEnvironment.outputs.id
+    containerImage: 'ghcr.io/mirfire/dotnet-hello-world:1.0.0'
   }
 }
