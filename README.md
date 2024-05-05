@@ -1,4 +1,6 @@
- # .NET Web App Development Environment on Azure
+# .NET Web App Development Environment on Azure
+
+[![Building ARM Template from main Bicep file](https://github.com/mirfire/azure-bicep-training/actions/workflows/arm-build.yaml/badge.svg?branch=main&event=push)](https://github.com/mirfire/azure-bicep-training/actions/workflows/arm-build.yaml)
 
 This repository hosts the necessary Bicep code to deploy a .NET web app on Azure. This is made as an exploration and practice for Bicep, while
 
