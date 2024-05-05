@@ -1,0 +1,23 @@
+name: Building ARM Template from main Bicep file
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+
+jobs:
+  bicep-arm-template-build:
+    name: Building ARM Template
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Bicep Build
+        uses: Azure/bicep-build-action@v1.0.0
+        with:
+          bicepFilePath: src/main.bicep
+          outputFilePath: ARMtemplate.json
+      - name: Upload ARM template as artifact
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: ARM-template
+          path: ARMtemplate.json
