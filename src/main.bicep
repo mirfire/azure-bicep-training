@@ -21,3 +21,15 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2023-07-01' = {
   location: location
   tags: tags
 }
+
+// Deploying a the environment to run the containers in
+// So far, it is extremely basic and does not store logs, nor has any file sharing/mounts
+module containerAppEnvironment 'modules/containerAppEnvironment/main.bicep' = {
+  name: '${appName}-${env}-caenv'
+  scope: resourceGroup
+  params: {
+    name: '${appName}-${env}-caenv'
+    location: location
+    tags: tags
+  }
+}
