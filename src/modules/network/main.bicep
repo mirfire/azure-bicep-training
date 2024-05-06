@@ -31,6 +31,9 @@ resource network 'Microsoft.Network/virtualNetworks@2023-09-01' = {
             {
               service: 'Microsoft.Storage'
             }
+            {
+              service: 'Microsoft.Sql'
+            }
           ]
         }
       }
