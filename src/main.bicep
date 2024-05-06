@@ -1,5 +1,5 @@
 targetScope = 'subscription'
-import { ContainerApp, ContainerApps } from 'types.bicep'
+import { ContainerApp } from 'types.bicep'
 
 @description('Name of the app')
 param appName string
