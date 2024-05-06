@@ -5,8 +5,8 @@ param tags object
 @description('Subnet to deploy the database into')
 param subnetId string
 
-@description('List of database names to create')
-param databaseNames string[]
+@description('Name of the database to create')
+param databaseName string
 
 @secure()
 param pgsqlAdminUser string
@@ -35,9 +35,11 @@ resource postgreSQLServer 'Microsoft.DBforPostgreSQL/flexibleServers@2022-12-01'
   }
 }
 
-resource databases 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2022-12-01' = [
-  for database in databaseNames: {
-    name: database
-    parent: postgreSQLServer
-  }
-]
+resource database 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2022-12-01' = {
+  name: databaseName
+  parent: postgreSQLServer
+}
+
+output id string = postgreSQLServer.id
+output domainName string = postgreSQLServer.properties.fullyQualifiedDomainName
+output databaseName string = database.name
