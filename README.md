@@ -2,7 +2,7 @@
 
 [![Building ARM Template from main Bicep file](https://github.com/mirfire/azure-bicep-training/actions/workflows/arm-build.yaml/badge.svg?branch=main&event=push)](https://github.com/mirfire/azure-bicep-training/actions/workflows/arm-build.yaml)
 
-This repository hosts the necessary Bicep code to deploy a .NET web app on Azure. This is made as an exploration and practice of [Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview)
+This repository hosts the necessary Bicep code to deploy a .NET web app on Azure. This was also used as an exploration of [Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview).
 
 ## Context
 
@@ -40,20 +40,12 @@ flowchart LR
     end
 ```
 
-The implemented solution uses Azure Container Apps and deploys everything through a self-contained Bicep module, with various submodules. Using them, we deploy an ASP.Net application. The code and image of which are in the [mirfire/dotnet-hello-world](https://github.com/mirfire/dotnet-hello-world) repository.
+The implemented solution uses Azure Container Apps and deploys everything through a self-contained Bicep module, with various submodules. Using them, we deploy two containers of an ASP.Net application. The code and image of which are in the [mirfire/dotnet-hello-world](https://github.com/mirfire/dotnet-hello-world) repository. One container is exposed to the internet, the other container is exposed only to the other Container Apps in the Managed Environment.
 
-This solution 
+Currently, the whole infrastructure is deployed, then, through the `app` submodule, a team deploys the needed containers for their services. In the `src/main.bicep` file, everything happens in one go.
 
 ### Submodules
 
-- `app`:
-  - This is the module for the teams. Through variables, it will deploy a the following resources
-    - A storage account
-      - An `AzureFiles` share for each volume of the containers
-      - A storage mount in the `managedEnvironment` for each volume of the containers
-    - A container App for each one defined in the `containers` parameter (currently only accessible through the main module)
-      - Each container will use the storage mount defined above
-      - They can be externally available by setting `containers[].ingress.external: true`
 - `container`:
   - Deploys a container app, taking one `ContainerApp` as argument
 - `containerAppEnvironment`:
@@ -70,10 +62,18 @@ This solution
 - `volumeMountShares`
   - Submodule responsible for the creation of the shares in the storage account and of the storages in the managed environment
   - Used in `app`
+- `app`:
+  - This is the module for the teams.
+  - It abstracts the ContainerApps definitions, and takes care of the creation of a storage account if a container needs a volume mount.
+  - Through variables, it will deploy a the following resources
+    - A storage account
+      - An `AzureFiles` share for each volume of the containers
+      - A storage mount in the `managedEnvironment` for each volume of the containers
+    - A container App for each one defined in the `containers` parameter (currently only accessible through the main module)
+      - Each container will use the storage mount defined above
+      - They can be externally available by setting `containers[].ingress.external: true`
 
-Assembling those modules in `src/main.bicep`, we deploy the infrastructure, and one application from a team.
-
-Additionally, some custom types were defined in `src/types.bicep`, like `ContainerApp`.
+Additionally, some custom types were defined in `src/types.bicep`, like `ContainerApp`, that is the basis for the abstraction in the `app` submodule.
 
 ### Parameters
 
@@ -117,6 +117,12 @@ Using the parameters from above, we achieve the following:
 
 ### Future Changes
 
+#### Should Resources be Abstracted away
+
+Depending on who will deploy the resources, and how resources will be provided, we might want to abstract away complexity for our users. This complexifies the design of modules on our part, but simplifies deployments for users and helps standardization.
+
+Standardization could also be achieved through [Policies](https://learn.microsoft.com/en-us/azure/governance/policy/).
+
 #### Decide of the Architecture
 
 If Azure Container Apps are a worthy solution, decisions should be taken on how to integrate them with the current infrastructure, and how they should be shared between environments and teams. 
@@ -142,7 +148,7 @@ App deployments should be made outside of this module through a CI/CD pipeline. 
 
 Currently, the module deploys the infrastructure, and the apps. The `app` submodule can be used separately by each time that will want to deploy something, as long as they know the name of the Managed Environment to deploy on.
 
-The way of deploying the apps will determine [which features](https://learn.microsoft.com/en-us/azure/container-apps/overview#features) are accessible to the teams.
+The way we deploy apps will determine [which features](https://learn.microsoft.com/en-us/azure/container-apps/overview#features) are accessible to the teams.
 
 #### Better Management of Networking
 
