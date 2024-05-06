@@ -1,96 +1,82 @@
+import { ContainerApp } from '../../types.bicep'
+
+@description('The name of the application')
+param appName string
+
+@description('Name of the Managed Environment hosting the containers')
 param managedEnvironmentName string
+
+@description('Environment of the app')
 param env string
+
+param containers ContainerApp[]
+
 param location string
+
 param tags object
-param fileShareName string
-param subnetID string
 
 resource managedEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
   name: managedEnvironmentName
 }
 
-var teamStorageAccountName = 'teamstorage${uniqueString(resourceGroup().id)}'
+var appStorageName = substring('${appName}${env}sa${uniqueString(resourceGroup().id)}', 0, 24)
+var subnetID = managedEnvironment.properties.vnetConfiguration.infrastructureSubnetId
 
 module teamStorageAccount '../storageaccount/main.bicep' = {
-  name: teamStorageAccountName
+  name: appStorageName
   params: {
     allowedSubnets: [
       subnetID
     ]
     location: location
-    name: teamStorageAccountName
+    name: appStorageName
     tags: tags
   }
 }
 
-resource frontendFileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-01-01' = {
-  name: '${teamStorageAccount.name}/default/${fileShareName}'
-  dependsOn: [
-    teamStorageAccount
-  ]
-}
-
-var teamStorageAccountKey = listKeys(
-  resourceId('Microsoft.Storage/storageAccounts', teamStorageAccount.name),
-  '2023-01-01'
-).keys[0].value
-
-resource frontendStorage 'Microsoft.App/managedEnvironments/storages@2023-05-01' = {
-  #disable-next-line use-parent-property // can't use parent property as we skip it with frontendFileShare
-  name: '${managedEnvironment.name}/frontendstorage'
-  properties: {
-    azureFile: {
-      accountName: teamStorageAccount.name
-      shareName: frontendFileShare.name
-      accountKey: teamStorageAccountKey
-      accessMode: 'ReadWrite'
+module volumeMountShares '../volumeMountShares/main.bicep' = [
+  for container in containers: {
+    name: '${container.name}shares'
+    params: {
+      container: container
+      storageAccountName: appStorageName
+      managedEnvironmentName: managedEnvironment.name
     }
+    dependsOn: [
+      teamStorageAccount
+    ]
   }
-  dependsOn: [
-    teamStorageAccount
-    managedEnvironment
-  ]
-}
+]
 
-resource frontend 'Microsoft.App/containerApps@2023-05-01' = {
-  name: 'frontend-${env}'
-  location: location
-  properties: {
-    environmentId: managedEnvironment.id
-    configuration: {
-      ingress: {
-        targetPort: 8080
-        external: true
+resource containerApps 'Microsoft.App/containerApps@2023-05-01' = [
+  for container in containers: {
+    name: '${container.name}-${env}'
+    location: location
+    properties: {
+      environmentId: managedEnvironment.id
+      configuration: {
+        ingress: container.ingress
       }
-      activeRevisionsMode: 'Single'
-    }
-    template: {
-      containers: [
-        {
-          name: 'dotnet-hello-world'
-          image: 'ghcr.io/mirfire/dotnet-hello-world:1.0.0'
-          volumeMounts: [
-            {
-              volumeName: 'frontendvolume'
-              mountPath: '/data'
-            }
-          ]
-        }
-      ]
-      scale: {
-        minReplicas: 3 // 3 Availability zones
-        maxReplicas: 9 // Arbitrary
+      template: {
+        containers: [
+          {
+            name: container.name
+            image: container.image
+            volumeMounts: container.volumeMounts
+          }
+        ]
+        volumes: [
+          // container.volumeMounts might be null 
+          for volume in container.volumeMounts!: {
+            name: volume.volumeName
+            storageName: '${volume.volumeName}storage'
+            storageType: 'AzureFile'
+          }
+        ]
       }
-      volumes: [
-        {
-          name: 'frontendvolume'
-          storageName: 'frontendstorage'
-          storageType: 'AzureFile'
-        }
-      ]
     }
+    dependsOn: [
+      volumeMountShares
+    ]
   }
-  dependsOn: [
-    frontendStorage
-  ]
-}
+]

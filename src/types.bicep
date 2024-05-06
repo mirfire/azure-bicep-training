@@ -26,16 +26,21 @@ type ContainerApp = {
     maxReplicas: int
   }
   resources: {
-    @description('CPU in cores, must be written as a JSON decimal string')
+    @description('CPU in cores, must be written as a JSON decimal in a string')
     cpuCores: string
-    @description('Memory in Gb, must be a ratio of 2 cpuCores')
+    @description('Memory in Gb, must be a ratio of x2 cpuCores')
     memory: string
   }
   ingress: {
-    ingressEnabled: bool
-    ingressIsExternal: bool
+    external: bool
     targetPort: int
-  }
+  }?
+  volumeMounts: [
+    {
+      volumeName: string
+      mountPath: string
+    }
+  ]?
 }
 
 @export()
