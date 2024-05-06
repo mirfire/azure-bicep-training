@@ -27,3 +27,6 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
     supportsHttpsTrafficOnly: true
   }
 }
+
+output id string = storageAccount.id
+output name string = storageAccount.name
