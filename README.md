@@ -27,17 +27,22 @@ A team needs a simple infrastructure for developing and testing a new product, i
 flowchart LR
     internet[Internet]-->|HTTPS Ingress| containerFront
     subgraph vnet [Virtual Network]
+      subgraph subnetContainer [Container Subnet]
         subgraph environment [Container App Environment]
             logAnalytics[Log Analytics]
             containerFront[Front-End Container]
             containerBack[Back-End Container]
             containerFront <-->|optional| containerBack
         end
-        containerBack -->|optional| database
+      end
+      subgraph subnetDB [Database Subnet]
         database[Azure DB for PGSQL]
-        storageAccount[Storage Account]
-        containerFront -->|optional| storageAccount
+        containerBack -->|optional| database
+      end
     end
+    storageAccount[Storage Account]
+    subnetContainer -->|whitelist| storageAccount
+    containerFront -->|optional| storageAccount
 ```
 
 The implemented solution uses Azure Container Apps and deploys everything through a self-contained Bicep module, with various submodules. Using them, we deploy two containers of an ASP.Net application. The code and image of which are in the [mirfire/dotnet-hello-world](https://github.com/mirfire/dotnet-hello-world) repository. One container is exposed to the internet, the other container is exposed only to the other Container Apps in the Managed Environment.
