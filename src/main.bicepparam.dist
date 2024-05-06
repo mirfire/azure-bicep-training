@@ -1,0 +1,54 @@
+using './main.bicep'
+
+param appName = 'homework'
+param location = 'westeurope'
+param env = 'dev'
+param userTags = {
+  deployedBy: 'mirfire'
+}
+param containers = [
+  {
+    name: 'front'
+    image: 'ghcr.io/mirfire/dotnet-hello-world:1.0.0'
+    ingress: {
+      external: true
+      targetPort: 8080
+    }
+    scaling: {
+      minReplicas: 3
+      maxReplicas: 3
+    }
+    resources: {
+      cpuCores: '0.5'
+      memory: '1Gi'
+    }
+    volumeMounts: [
+      {
+        mountPath: '/data'
+        volumeName: 'datavol'
+      }
+    ]
+  }
+  {
+    name: 'back'
+    image: 'ghcr.io/mirfire/dotnet-hello-world:1.0.0'
+    ingress: {
+      external: false
+      targetPort: 8000
+    }
+    scaling: {
+      minReplicas: 3
+      maxReplicas: 3
+    }
+    resources: {
+      cpuCores: '0.5'
+      memory: '1Gi'
+    }
+    volumeMounts: [
+      {
+        mountPath: '/back'
+        volumeName: 'backvol'
+      }
+    ]
+  }
+]
