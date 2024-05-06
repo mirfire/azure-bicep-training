@@ -24,6 +24,10 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
           name: container.name
           image: container.image
           volumeMounts: container.volumeMounts
+          resources: {
+            cpu: json(container.resources.cpuCores)
+            memory: container.resources.memory
+          }
         }
       ]
       volumes: [
