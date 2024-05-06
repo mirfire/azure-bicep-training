@@ -1,7 +1,11 @@
 import { ContainerApp } from '../../types.bicep'
 
+@description('Container to create the shares and mounts for')
 param container ContainerApp
+
+@description('Name of the storage account that will host the shares')
 param storageAccountName string
+
 @description('Name of the Managed Environment hosting the containers')
 param managedEnvironmentName string
 

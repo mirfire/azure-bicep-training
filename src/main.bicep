@@ -21,6 +21,7 @@ param vnetAddressPrefixes arrayString = [
 // https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps?tabs=azure-cli#enable-zone-redundancy-with-the-azure-cli
 param subnetAddressPrefix string = '10.0.0.0/23'
 
+@description('List of containers to deploy')
 param containers ContainerApps
 
 var defaultTags = { appName: appName, env: appName, buildTool: 'bicep' }

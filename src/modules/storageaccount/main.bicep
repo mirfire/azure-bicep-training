@@ -14,6 +14,7 @@ param tags object
 ])
 param storageSku string = 'Standard_LRS'
 
+@description('IDs of the subnets that should be allowed to communicate with the storage account')
 param allowedSubnets string[] = []
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
