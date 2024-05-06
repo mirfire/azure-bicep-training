@@ -21,7 +21,7 @@ param vnetAddressPrefixes arrayString = [
 // https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps?tabs=azure-cli#enable-zone-redundancy-with-the-azure-cli
 param subnetAddressPrefix string = '10.0.0.0/23'
 
-param containers ContainerApps
+// param containers ContainerApps
 
 var defaultTags = { appName: appName, env: appName, buildTool: 'bicep' }
 var tags = union(userTags, defaultTags)
@@ -61,17 +61,16 @@ module containerAppEnvironment 'modules/containerAppEnvironment/main.bicep' = {
   }
 }
 
-// Deploying just one container so far
-module containerApps 'modules/container/main.bicep' = [
-  for container in containers: {
-    scope: resourceGroup
-    name: '${container.name}-${appName}-${env}'
-    params: {
-      name: '${container.name}-${appName}-${env}'
-      tags: tags
-      environmentID: containerAppEnvironment.outputs.id
-      location: location
-      container: container
-    }
+// Under this, deployment for an app
+module teamApp 'modules/app/main.bicep' = {
+  scope: resourceGroup
+  name: 'team-app'
+  params: {
+    location: location
+    subnetID: network.outputs.subnetId
+    managedEnvironmentName: containerAppEnvironment.name
+    fileShareName: 'teamstorage'
+    env: env
+    tags: tags
   }
-]
+}

@@ -24,6 +24,11 @@ resource network 'Microsoft.Network/virtualNetworks@2023-09-01' = {
         properties: {
           addressPrefix: subnetAddressPrefix
           privateEndpointNetworkPolicies: 'Disabled'
+          serviceEndpoints: [
+            {
+              service: 'Microsoft.Storage'
+            }
+          ]
         }
       }
     ]

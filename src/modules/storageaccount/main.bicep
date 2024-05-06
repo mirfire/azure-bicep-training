@@ -14,6 +14,8 @@ param tags object
 ])
 param storageSku string = 'Standard_LRS'
 
+param allowedSubnets string[] = []
+
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: name
   location: location
@@ -25,6 +27,17 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   properties: {
     largeFileSharesState: 'Enabled'
     supportsHttpsTrafficOnly: true
+    publicNetworkAccess: null
+    networkAcls: {
+      defaultAction: 'Deny'
+      bypass: 'AzureServices'
+      virtualNetworkRules: [
+        for allowedSubnetId in allowedSubnets: {
+          id: allowedSubnetId
+          action: 'Allow'
+        }
+      ]
+    }
   }
 }
 
