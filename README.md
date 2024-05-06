@@ -154,24 +154,6 @@ Currently we deploy an app from a public container registry. In the future, a pr
 
 ## Other Possible Solutions
 
-### Container Apps Based (CaaS)
-
-Packaging the code into a container image, then running that image in an Azure-controlled environment.
-
-- Based on containers
-  - More portable
-  - More flexible
-  - Requires packaging
-- Limited management of the Container Apps Environments
-- Pricing
-  - Dedicated
-    - Flat management fee
-    - Per vCPU/h & Memory/h
-  - Consumption
-    - Per million request 
-    - Per vCPU/s & Memory/s
-
-
 ### App Service Based (PaaS)
 
 Deploying code directly to an Azure-controlled environment through App Service. Works, though possibly more expensive than a container-as-a-service based solution as we are billed for the underlying machine(s) running the code. Although they can be shared between multiple apps.
