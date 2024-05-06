@@ -1,4 +1,4 @@
-import { arrayString, ContainerApp, ContainerApps } from '../../types.bicep'
+import { ContainerApp } from '../../types.bicep'
 
 param name string
 param location string

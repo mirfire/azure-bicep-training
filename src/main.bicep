@@ -1,5 +1,5 @@
 targetScope = 'subscription'
-import { arrayString, ContainerApp, ContainerApps } from 'types.bicep'
+import { ContainerApp, ContainerApps } from 'types.bicep'
 
 @description('Name of the app')
 param appName string
@@ -14,7 +14,7 @@ param env string
 param userTags object = {}
 
 @description('List of VNet address prefixes')
-param vnetAddressPrefixes arrayString = [
+param vnetAddressPrefixes string[] = [
   '10.0.0.0/16'
 ]
 @description('Subnet address prefix, must be a valid CIDR block of /23 or bigger')
@@ -22,7 +22,7 @@ param vnetAddressPrefixes arrayString = [
 param subnetAddressPrefix string = '10.0.0.0/23'
 
 @description('List of containers to deploy')
-param containers ContainerApps
+param containers ContainerApp[]
 
 var defaultTags = { appName: appName, env: appName, buildTool: 'bicep' }
 var tags = union(userTags, defaultTags)
@@ -50,7 +50,7 @@ module network 'modules/network/main.bicep' = {
 }
 
 // Deploying a the environment to run the containers in
-// So far, it is extremely basic and does not store logs, nor has any file sharing/mounts
+// So far, it is pretty basic and does not store logs
 module containerAppEnvironment 'modules/containerAppEnvironment/main.bicep' = {
   name: '${appName}-${env}-caenv'
   scope: resourceGroup

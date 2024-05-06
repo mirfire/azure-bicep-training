@@ -1,8 +1,4 @@
 @export()
-@description('An array of string')
-type arrayString = string[]
-
-@export()
 @description('Environment variables for a container')
 type environmentVariable = {
   name: string
@@ -14,8 +10,8 @@ type environmentVariable = {
 type ContainerApp = {
   name: string
   image: string
-  args: arrayString?
-  command: arrayString?
+  args: string[]?
+  command: string[]?
   envVars: environmentVariable[]?
   scaling: {
     @minValue(3)
@@ -42,6 +38,3 @@ type ContainerApp = {
     }
   ]?
 }
-
-@export()
-type ContainerApps = ContainerApp[]
