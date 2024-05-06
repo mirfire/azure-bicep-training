@@ -28,7 +28,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   properties: {
     largeFileSharesState: 'Enabled'
     supportsHttpsTrafficOnly: true
-    publicNetworkAccess: null
+    publicNetworkAccess: (empty(allowedSubnets) ? 'Disabled' : null)
     networkAcls: {
       defaultAction: 'Deny'
       bypass: 'AzureServices'
