@@ -39,6 +39,10 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
           storageType: 'AzureFile'
         }
       ]
+      scale: {
+        minReplicas: container.scaling.minReplicas
+        maxReplicas: container.scaling.maxReplicas
+      }
     }
   }
 }
