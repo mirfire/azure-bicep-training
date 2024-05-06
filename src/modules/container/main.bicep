@@ -7,37 +7,33 @@ param tags object
 @description('ID for the managed environment')
 param environmentID string
 
+@description('Container to deploy')
 param container ContainerApp
 
 resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
-  location: location
   name: name
-  tags: tags
+  location: location
   properties: {
     environmentId: environmentID
     configuration: {
-      ingress: (container.ingress.ingressEnabled
-        ? {
-            external: container.ingress.ingressIsExternal
-            targetPort: container.ingress.targetPort
-          }
-        : null)
+      ingress: container.ingress
     }
     template: {
       containers: [
         {
           name: container.name
           image: container.image
-          resources: {
-            cpu: json(container.resources.cpuCores) // what. Bicep doesn't suppoort floats. See https://github.com/Azure/bicep/issues/5993#issuecomment-1043170716
-            memory: container.resources.memory
-          }
+          volumeMounts: container.volumeMounts
         }
       ]
-      scale: {
-        minReplicas: container.scaling.minReplicas
-        maxReplicas: container.scaling.maxReplicas
-      }
+      volumes: [
+        // container.volumeMounts might be null 
+        for volume in container.volumeMounts!: {
+          name: volume.volumeName
+          storageName: '${volume.volumeName}storage'
+          storageType: 'AzureFile'
+        }
+      ]
     }
   }
 }

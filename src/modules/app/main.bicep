@@ -48,32 +48,15 @@ module volumeMountShares '../volumeMountShares/main.bicep' = [
   }
 ]
 
-resource containerApps 'Microsoft.App/containerApps@2023-05-01' = [
+module containerApps '../container/main.bicep' = [
   for container in containers: {
     name: '${container.name}-${env}'
-    location: location
-    properties: {
-      environmentId: managedEnvironment.id
-      configuration: {
-        ingress: container.ingress
-      }
-      template: {
-        containers: [
-          {
-            name: container.name
-            image: container.image
-            volumeMounts: container.volumeMounts
-          }
-        ]
-        volumes: [
-          // container.volumeMounts might be null 
-          for volume in container.volumeMounts!: {
-            name: volume.volumeName
-            storageName: '${volume.volumeName}storage'
-            storageType: 'AzureFile'
-          }
-        ]
-      }
+    params: {
+      name: '${container.name}-${env}'
+      location: location
+      tags: tags
+      container: container
+      environmentID: managedEnvironment.id
     }
     dependsOn: [
       volumeMountShares
